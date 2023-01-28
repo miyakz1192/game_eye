@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import argparse
+import glob
 
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
@@ -22,10 +23,12 @@ class GameEye:
 
 	def __init__(self, image_file):
 		self.image_file = image_file
+		print("************* NEED TO MAKE LABEL and LABLE CODE HASH****")
 
 	def run(self):
 		print("===== RUN Game EYE =====")
 		self.call_ssd()
+		self.call_resnet()
 
 	def call_ssd(self):
 		cmd = ["./run_ssd.sh", self.SSD_HOME , self.GAME_EYE_HOME + self.image_file]
@@ -33,10 +36,19 @@ class GameEye:
 		print("DEBUG: %s" % (res))
 		log_dir = res[len(res)-1].split("IMAGE_LOG=")[1]
 		print("DEBUG: log_dir = %s" % (log_dir))
-		return log_dir
+		self.ssd_image_log_dir = log_dir
 
 	def call_resnet(self):
-		pass
+		dres = DetectionResultContainer()
+		dres.load(self.SSD_HOME + self.ssd_image_log_dir + "/result_data.pickle")
+#		l = glob.glob(self.SSD_HOME + self.ssd_image_log_dir + "/*.jpg")
+		for i in dres.res:
+			target = self.SSD_HOME + i.file_name
+			cmd = ["./run_resnet.sh", self.RESNET_HOME , target]
+			res = subprocess.check_output(cmd).decode('utf-8').strip().split("\n")
+			res = res[len(res)-1]
+			res = res.strip("()")
+			print(res)
 
 
 if __name__ == "__main__":
