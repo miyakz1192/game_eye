@@ -44,7 +44,7 @@ class GameEye:
 			self.code_label[int(code)] = label
 
 	def call_ssd(self):
-		cmd = ["./run_ssd.sh", self.SSD_HOME , self.GAME_EYE_HOME + self.image_file]
+		cmd = ["./run_ssd.sh", self.SSD_HOME , self.image_file]
 		res = subprocess.check_output(cmd).decode('utf-8').strip().split("\n")
 		print("DEBUG: %s" % (res))
 		log_dir = res[len(res)-1].split("IMAGE_LOG=")[1]
@@ -76,7 +76,7 @@ class GameEye:
 				max_rect  = i.rect
 
 		if max_label is not None:
-			print("EYE_RESULT=%s, %f" % (max_label, max_score))
+			print("EYE_RESULT=%s, %f, %s" % (max_label, max_score, max_rect.to_s()))
 			eye_detection_res.add(max_label, max_score, max_rect.to_taple())
 			eye_detection_res.save("eye_result_data.pickle")
 
