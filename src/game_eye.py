@@ -52,12 +52,14 @@ class GameEye:
 		self.ssd_image_log_dir = log_dir
 
 	def call_resnet(self):
-		dres = DetectionResultContainer()
-		dres.load(self.SSD_HOME + self.ssd_image_log_dir + "/result_data.pickle")
+		ssd_detection_res = DetectionResultContainer()
+		ssd_detection_res.load(self.SSD_HOME + self.ssd_image_log_dir + "/result_data.pickle")
+		eye_detection_res = DetectionResultContainer()
 #		l = glob.glob(self.SSD_HOME + self.ssd_image_log_dir + "/*.jpg")
 		max_label = None
 		max_score = 0.0
-		for i in dres.res:
+		max_rect = None
+		for i in ssd_detection_res.res:
 			target = self.SSD_HOME + i.file_name
 			cmd = ["./run_resnet.sh", self.RESNET_HOME , target]
 			res = subprocess.check_output(cmd).decode('utf-8').strip().split("\n")
@@ -71,9 +73,12 @@ class GameEye:
 			if score > max_score:
 				max_score = score
 				max_label = label
+				max_rect  = i.rect
 
 		if max_label is not None:
 			print("EYE_RESULT=%s, %f" % (max_label, max_score))
+			eye_detection_res.add(max_label, max_score, max_rect.to_taple())
+			eye_detection_res.save("eye_result_data.pickle")
 
 if __name__ == "__main__":
 	eye = GameEye(args.image_file)
