@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import shutil
 import os
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from detection_result import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("image_file", type=str)
+parser.add_argument("--algo", type=str, default="all")
 args = parser.parse_args()
 
 class GameEye:
@@ -22,15 +24,25 @@ class GameEye:
 	RESULT_JPG_FILE_PATH = "./result/result.jpg"
 	PICKLE_FILE_PATH     = SSD_HOME + "/result_data.pickle"
 
-	def __init__(self, image_file):
+	def __init__(self, image_file, algo="all"):
 		self.code_label = defaultdict(int) #ResNet's label(str) and code(int) hash
 		self.image_file = image_file
 		self.get_resnet_labels()
+		self.algo = algo
 
 	def run(self):
 		print("===== RUN Game EYE =====")
-		self.call_ssd()
-		self.call_resnet()
+		if self.algo == "all":
+			self.call_ssd()
+			self.call_resnet()
+		elif self.algo == "ssd":
+			self.call_ssd()
+			ssd_detection_res = self.SSD_HOME + self.ssd_image_log_dir + "/result_data.pickle"
+			eye_detection_res = "eye_result_data.pickle"
+			shutil.copyfile(ssd_detection_res, eye_detection_res)
+		else:
+			print("ERROR: invalid algo")
+			raise ValueError("")
 
 	def get_resnet_labels(self):
 		print("************* NEED TO MAKE LABEL and LABLE CODE HASH****")
@@ -81,5 +93,5 @@ class GameEye:
 			eye_detection_res.save("eye_result_data.pickle")
 
 if __name__ == "__main__":
-	eye = GameEye(args.image_file)
+	eye = GameEye(args.image_file, algo=args.algo)
 	eye.run()
